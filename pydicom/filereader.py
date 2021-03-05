@@ -1045,3 +1045,22 @@ def read_deferred_data_element(fileobj_type, filename_or_obj, timestamp,
 
     # Everything is ok, now this object should act like usual DataElement
     return data_elem
+
+
+if __name__ == '__main__':
+    from pydicom.data import get_testdata_file
+    fpath = get_testdata_file("CT_small.dcm")
+    print(fpath)
+    
+    # ds = dcmread(fpath, specific_tags=['OtherPatientIDsSequence', 'PatientID'])
+    ds = dcmread(fpath, stop_before_pixels=True)
+    import json
+    
+    json_obj = ds.to_json(omit_bulk=True,
+                          dump_handler=lambda x: x,
+                          keyword_as_key=True
+                          )
+    print(json.dumps(json_obj, indent=2))
+    
+    print(len(json_obj.keys()))
+    

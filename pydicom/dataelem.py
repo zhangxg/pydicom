@@ -285,7 +285,9 @@ class DataElement:
     def to_json_dict(
         self,
         bulk_data_element_handler: Optional[Callable[["DataElement"], str]],
-        bulk_data_threshold: int
+        bulk_data_threshold: int,
+        omit_bulk: bool = False,
+        keyword_as_key: bool = False
     ) -> Dict[str, object]:
         """Return a dictionary representation of the :class:`DataElement`
         conforming to the DICOM JSON Model as described in the DICOM
@@ -311,6 +313,9 @@ class DataElement:
         """
         json_element = {'vr': self.VR, }
         if self.VR in jsonrep.BINARY_VR_VALUES:
+            if omit_bulk:
+                json_element['Value'] = '<...ignored binary...>'
+                return json_element
             if not self.is_empty:
                 binary_value = self.value
                 encoded_value = base64.b64encode(binary_value).decode('utf-8')
@@ -332,7 +337,9 @@ class DataElement:
                 ds.to_json(
                     bulk_data_element_handler=bulk_data_element_handler,
                     bulk_data_threshold=bulk_data_threshold,
-                    dump_handler=lambda d: d
+                    dump_handler=lambda d: d,
+                    omit_bulk=omit_bulk,
+                    keyword_as_key=keyword_as_key
                 )
                 for ds in self.value
             ]
@@ -375,7 +382,7 @@ class DataElement:
         self,
         bulk_data_threshold: int = 1024,
         bulk_data_element_handler: Optional[Callable[["DataElement"], str]] = None,  # noqa
-        dump_handler: Optional[Callable[[Dict[object, object]], str]] = None
+        dump_handler: Optional[Callable[[Dict[object, object]], str]] = None,
     ) -> Dict[str, object]:
         """Return a JSON representation of the :class:`DataElement`.
 
@@ -412,7 +419,8 @@ class DataElement:
             dump_handler = json_dump
 
         return dump_handler(
-            self.to_json_dict(bulk_data_element_handler, bulk_data_threshold)
+            self.to_json_dict(bulk_data_element_handler,
+                              bulk_data_threshold)
         )
 
     @property

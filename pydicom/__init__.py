@@ -37,6 +37,8 @@ from pydicom.sequence import Sequence
 
 from ._version import __version__, __version_info__, __dicom_version__
 
+from ._dicom_dict import DicomDictionary
+
 __all__ = ['DataElement',
            'Dataset',
            'FileDataset',
@@ -47,3 +49,5 @@ __all__ = ['DataElement',
            'write_file',
            '__version__',
            '__version_info__']
+
+print('using local code base')

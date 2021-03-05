@@ -2278,7 +2278,9 @@ class Dataset(Dict[BaseTag, _DatasetValue]):
     def to_json_dict(
         self,
         bulk_data_threshold: int = 1024,
-        bulk_data_element_handler: Optional[Callable[[DataElement], str]] = None  # noqa
+        bulk_data_element_handler: Optional[Callable[[DataElement], str]] = None,  # noqa
+        omit_bulk: bool = False,
+        keyword_as_key: bool = False
     ) -> _Dataset:
         """Return a dictionary representation of the :class:`Dataset`
         conforming to the DICOM JSON Model as described in the DICOM
@@ -2306,18 +2308,27 @@ class Dataset(Dict[BaseTag, _DatasetValue]):
         json_dataset = {}
         for key in self.keys():
             json_key = '{:08X}'.format(key)
+            if keyword_as_key:
+                keyword_key = keyword_for_tag(json_key)
+                json_key = json_key if not keyword_key else keyword_key
+                
             data_element = self[key]
             json_dataset[json_key] = data_element.to_json_dict(
                 bulk_data_element_handler=bulk_data_element_handler,
-                bulk_data_threshold=bulk_data_threshold
+                bulk_data_threshold=bulk_data_threshold,
+                omit_bulk=omit_bulk,
+                keyword_as_key=keyword_as_key
             )
+            json_dataset[json_key]['tag'] = '{:08X}'.format(key)
         return json_dataset
 
     def to_json(
         self,
         bulk_data_threshold: int = 1024,
         bulk_data_element_handler: Optional[Callable[[DataElement], str]] = None,  # noqa
-        dump_handler: Optional[Callable[["Dataset"], str]] = None
+        dump_handler: Optional[Callable[["Dataset"], str]] = None,
+        omit_bulk: bool = False,
+        keyword_as_key: bool = False
     ) -> str:
         """Return a JSON representation of the :class:`Dataset`.
 
@@ -2365,7 +2376,10 @@ class Dataset(Dict[BaseTag, _DatasetValue]):
             dump_handler = json_dump
 
         return dump_handler(
-            self.to_json_dict(bulk_data_threshold, bulk_data_element_handler))
+            self.to_json_dict(bulk_data_threshold,
+                              bulk_data_element_handler,
+                              omit_bulk,
+                              keyword_as_key))
 
     def __getstate__(self) -> Dict[str, Any]:
         # pickle cannot handle weakref - remove parent
