@@ -2320,6 +2320,8 @@ class Dataset(Dict[BaseTag, _DatasetValue]):
                 keyword_as_key=keyword_as_key
             )
             json_dataset[json_key]['tag'] = '{:08X}'.format(key)
+            json_dataset[json_key]['group'] = '{:04X}'.format(key.group)
+            json_dataset[json_key]['element'] = '{:04X}'.format(key.element)
         return json_dataset
 
     def to_json(
