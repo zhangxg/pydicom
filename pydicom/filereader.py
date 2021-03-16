@@ -1050,13 +1050,26 @@ def read_deferred_data_element(fileobj_type, filename_or_obj, timestamp,
 if __name__ == '__main__':
     data_folder = '/Users/zhangxg/work/gitrepo/github/pydicom/pydicom/data/test_files'
     test_file = 'CT_small.dcm'
-    test_file = 'JPGExtended.dcm'
+    # test_file = 'JPGExtended.dcm'
+    # test_file = 'MR_small_implicit.dcm'
     
     test_file = f'{data_folder}/{test_file}'
     # file_meata = read_file_meta_info(test_file)
     
     ds = dcmread(test_file)
-    
     import json
     print(json.dumps(ds.to_json_with_meta(), indent=2))
-    # print(ds)
+    
+    # from glob import glob
+    # test_files = glob(f'{data_folder}/*.dcm')
+    # for f in test_files:
+    #     print(f)
+    #     try:
+    #         ds = dcmread(f)
+    #         ds.to_json_with_meta()
+    #         # ds.to_json()
+    #         # print(ds.to_json_with_meta())
+    #     except InvalidDicomError:
+    #         print(f'file error {f}')
+    #     except ValueError:
+    #         print(f'value error {f}')

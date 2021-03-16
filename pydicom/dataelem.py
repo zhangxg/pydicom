@@ -369,7 +369,18 @@ class DataElement:
             json_element['Value'] = jsonrep.convert_to_python_number(
                 json_element['Value'], self.VR
             )
-        return json_element
+        
+        if 'Value' in json_element:
+            values = json_element['Value']
+            if self.VR != 'SQ':
+                if len(values) > 1:
+                    return '\\'.join([str(v) for v in values])
+                else:
+                    return values[0]
+            else:
+                return values
+        else:
+            return None
 
     def to_json(
         self,
