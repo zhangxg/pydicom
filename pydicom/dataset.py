@@ -2304,6 +2304,7 @@ class Dataset(Dict[BaseTag, _DatasetValue]):
             :class:`Dataset` representation based on the DICOM JSON Model.
         """
         json_dataset = {}
+        
         for key in self.keys():
             json_key = '{:08X}'.format(key)
             data_element = self[key]
@@ -2313,57 +2314,40 @@ class Dataset(Dict[BaseTag, _DatasetValue]):
             )
         return json_dataset
 
+    def to_json_with_meta(
+        self,
+        bulk_data_threshold: int = 1024,
+        bulk_data_element_handler: Optional[Callable[[DataElement], str]] = None,  # noqa
+    ) -> str:
+        """Return a JSON representation of the :class:`Dataset`.
+        with meta info, fixme, this ugly.
+        """
+        ds_json = self.to_json(bulk_data_threshold, bulk_data_element_handler)
+        meta = {}
+        for key in self.file_meta.keys():
+            json_key = '{:08X}'.format(key)
+            data_element = self.file_meta[key]
+            meta[json_key] = data_element.to_json_dict(
+                bulk_data_element_handler=bulk_data_element_handler,
+                bulk_data_threshold=bulk_data_threshold
+            )
+        ds_json['file_meta'] = meta
+        return ds_json
+    
     def to_json(
         self,
         bulk_data_threshold: int = 1024,
         bulk_data_element_handler: Optional[Callable[[DataElement], str]] = None,  # noqa
         dump_handler: Optional[Callable[["Dataset"], str]] = None
     ) -> str:
-        """Return a JSON representation of the :class:`Dataset`.
-
-        .. versionadded:: 1.3
-
-        See the DICOM Standard, Part 18, :dcm:`Annex F<part18/chapter_F.html>`.
-
-        Parameters
-        ----------
-        bulk_data_threshold : int, optional
-            Threshold for the length of a base64-encoded binary data element
-            above which the element should be considered bulk data and the
-            value provided as a URI rather than included inline (default:
-            ``1024``). Ignored if no bulk data handler is given.
-        bulk_data_element_handler : callable, optional
-            Callable function that accepts a bulk data element and returns a
-            JSON representation of the data element (dictionary including the
-            "vr" key and either the "InlineBinary" or the "BulkDataURI" key).
-        dump_handler : callable, optional
-            Callable function that accepts a :class:`dict` and returns the
-            serialized (dumped) JSON string (by default uses
-            :func:`json.dumps`).
-
-            .. note:
-
-                Make sure to use a dump handler that sorts the keys (see
-                example below) to create DICOM-conformant JSON.
-
-        Returns
-        -------
-        str
-            :class:`Dataset` serialized into a string based on the DICOM JSON
-            Model.
-
-        Examples
-        --------
-        >>> def my_json_dumps(data):
-        ...     return json.dumps(data, indent=4, sort_keys=True)
-        >>> ds.to_json(dump_handler=my_json_dumps)
-        """
+        
         if dump_handler is None:
             def json_dump(d):
                 return json.dumps(d, sort_keys=True)
 
-            dump_handler = json_dump
-
+            # dump_handler = json_dump
+        dump_handler = dump_handler if dump_handler \
+            else config.default_dump_handler
         return dump_handler(
             self.to_json_dict(bulk_data_threshold, bulk_data_element_handler))
 

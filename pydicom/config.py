@@ -457,3 +457,15 @@ def future_behavior(enable_future: bool = True) -> None:
 
 if _use_future:
     future_behavior()
+
+
+# override the default behavior of using tag as key
+using_keyword_as_json_key = True
+
+# skip reading of the binary typed value
+skip_binary_value = False
+skipped_binary_value_placeholder = '<...skipped-binary...>'
+
+
+def default_dump_handler(x):
+    return x
