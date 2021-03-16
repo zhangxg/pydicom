@@ -2307,6 +2307,9 @@ class Dataset(Dict[BaseTag, _DatasetValue]):
         
         for key in self.keys():
             json_key = '{:08X}'.format(key)
+            if config.using_keyword_as_json_key:
+                keyword = keyword_for_tag(key)
+                json_key = json_key if not keyword else keyword
             data_element = self[key]
             json_dataset[json_key] = data_element.to_json_dict(
                 bulk_data_element_handler=bulk_data_element_handler,
@@ -2326,6 +2329,9 @@ class Dataset(Dict[BaseTag, _DatasetValue]):
         meta = {}
         for key in self.file_meta.keys():
             json_key = '{:08X}'.format(key)
+            if config.using_keyword_as_json_key:
+                keyword = keyword_for_tag(key)
+                json_key = json_key if not keyword else keyword
             data_element = self.file_meta[key]
             meta[json_key] = data_element.to_json_dict(
                 bulk_data_element_handler=bulk_data_element_handler,
@@ -2340,12 +2346,7 @@ class Dataset(Dict[BaseTag, _DatasetValue]):
         bulk_data_element_handler: Optional[Callable[[DataElement], str]] = None,  # noqa
         dump_handler: Optional[Callable[["Dataset"], str]] = None
     ) -> str:
-        
-        if dump_handler is None:
-            def json_dump(d):
-                return json.dumps(d, sort_keys=True)
-
-            # dump_handler = json_dump
+      
         dump_handler = dump_handler if dump_handler \
             else config.default_dump_handler
         return dump_handler(
